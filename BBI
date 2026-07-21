@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>부산바다 세이프&클린 - 제보센터</title>
+  <style>
+    :root {
+      --bg-color: #f4f7f6;
+      --card-bg: #ffffff;
+      --text-color: #2c3e50;
+      --primary-color: #0077b6;
+      --accent-color: #00b4d8;
+      --warning-color: #ffb703;
+      --danger-color: #e63946;
+      --success-color: #2a9d8f;
+      --border-color: #e0e0e0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', -apple-system, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; align-items: center; padding: 15px 10px; }
+    .app-container { width: 100%; max-width: 480px; background: var(--card-bg); border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 20px; }
+
+    .header-title { text-align: center; color: var(--primary-color); margin-bottom: 15px; font-size: 1.2rem; font-weight: bold; }
+    .card { background: var(--bg-color); border-radius: 15px; padding: 15px; margin-bottom: 15px; }
+    
+    .beach-selector { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; }
+    .beach-btn { padding: 8px 14px; border: none; border-radius: 20px; background: #e2e8f0; color: var(--text-color); cursor: pointer; white-space: nowrap; font-weight: bold; font-size: 0.85rem; }
+    .beach-btn.active { background: var(--primary-color); color: white; }
+
+    /* 8개 항목 2열 그리드 */
+    .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .status-item { background: var(--card-bg); padding: 10px; border-radius: 10px; text-align: center; border: 1px solid var(--border-color); }
+    .status-title { font-size: 0.75rem; opacity: 0.8; margin-bottom: 4px; }
+    .status-value { font-size: 0.85rem; font-weight: bold; }
+
+    .score-banner { background: linear-gradient(135deg, var(--primary-color), var(--accent-color)); color: white; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .shop-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+    .shop-item { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color); }
+    .shop-name { font-weight: bold; font-size: 0.85rem; }
+    .shop-cost { font-size: 0.8rem; color: var(--primary-color); font-weight: bold; }
+    .btn-buy { background: var(--success-color); color: white; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.75rem; }
+
+    .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+    .form-label { font-size: 0.8rem; font-weight: bold; color: var(--primary-color); }
+    .form-control { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); }
+    .btn-submit { width: 100%; background: var(--primary-color); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+    
+    .img-preview { width: 100%; max-height: 150px; object-fit: cover; border-radius: 8px; display: none; margin-top: 5px; }
+    
+    .report-list { display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; margin-top: 10px; }
+    .report-item { background: var(--card-bg); padding: 12px; border-radius: 10px; border-left: 4px solid var(--warning-color); font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px; }
+    .report-item.approved { border-left-color: var(--success-color); }
+    .report-img { width: 100%; max-height: 120px; object-fit: cover; border-radius: 6px; }
+    .status-tag { font-size: 0.75rem; padding: 3px 8px; border-radius: 10px; font-weight: bold; }
+    .tag-pending { background-color: #fff3cd; color: #856404; }
+    .tag-approved { background-color: #d4edda; color: #155724; }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <h3 class="header-title">🌊 부산바다 세이프&클린</h3>
+
+  <div class="beach-selector">
+    <button class="beach-btn active" onclick="selectBeach('해운대')">해운대</button>
+    <button class="beach-btn" onclick="selectBeach('광안리')">광안리</button>
+    <button class="beach-btn" onclick="selectBeach('송정')">송정</button>
+    <button class="beach-btn" onclick="selectBeach('다대포')">다대포</button>
+  </div>
+
+  <div class="card">
+    <h4 id="selectedBeachName">해운대 실시간 상태 정보</h4>
+    <div class="status-grid">
+      <div class="status-item"><div class="status-title">🌊 이안류 위험도</div><div class="status-value" id="ripCurrent" style="color:var(--danger-color);">주의 (2단계)</div></div>
+      <div class="status-item"><div class="status-title">🪼 해파리 정보</div><div class="status-value" id="jellyfish" style="color:var(--warning-color);">출몰 (노무라)</div></div>
+      <div class="status-item"><div class="status-title">🧹 해변 청결도</div><div class="status-value" id="cleanliness" style="color:var(--success-color);">양호 (상)</div></div>
+      <div class="status-item"><div class="status-title">🌡️ 평균 수온</div><div class="status-value" id="waterTemp">22.5 ℃</div></div>
+      <div class="status-item"><div class="status-title">🌫️ 미세먼지</div><div class="status-value" id="fineDust" style="color:var(--success-color);">좋음 (18 µg/m³)</div></div>
+      <div class="status-item"><div class="status-title">🧪 오존 지수</div><div class="status-value" id="ozone">보통 (0.03 ppm)</div></div>
+      <div class="status-item"><div class="status-title">☀️ 자외선</div><div class="status-value" id="uvIndex" style="color:var(--warning-color);">높음 (7)</div></div>
+      <div class="status-item"><div class="status-title">💨 풍속</div><div class="status-value" id="windSpeed">3.5 m/s</div></div>
+    </div>
+  </div>
+
+  <div class="score-banner">
+    <div>
+      <div style="font-size: 0.8rem; opacity: 0.9;">내 클린 마일리지</div>
+      <div style="font-size: 1.3rem; font-weight: bold;" id="userPoints">0 pt</div>
+    </div>
+    <span style="font-size: 1.8rem;">🏅</span>
+  </div>
+
+  <div class="card">
+    <h4>🎁 마일리지 물품 교환</h4>
+    <div class="shop-list">
+      <div class="shop-item">
+        <div><div class="shop-name">🗑️ 종량제 봉투 (20L)</div><div class="shop-cost">100 pt</div></div>
+        <button class="btn-buy" onclick="buyItem('종량제 봉투', 100)">교환</button>
+      </div>
+      <div class="shop-item">
+        <div><div class="shop-name">☕ 카페 아메리카노</div><div class="shop-cost">200 pt</div></div>
+        <button class="btn-buy" onclick="buyItem('아메리카노', 200)">교환</button>
+      </div>
+      <div class="shop-item">
+        <div><div class="shop-name">🚌 대중교통 1회권</div><div class="shop-cost">300 pt</div></div>
+        <button class="btn-buy" onclick="buyItem('대중교통 이용권', 300)">교환</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h4>🚨 위험 & 쓰레기 제보하기</h4>
+    <form id="reportForm" onsubmit="addReport(event)" style="margin-top: 10px;">
+      <div class="form-group">
+        <label class="form-label">📩 관리자 이메일</label>
+        <input type="email" class="form-control" id="adminEmail" value="admin@busan.go.kr" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">⚠️ 제보 유형</label>
+        <select class="form-control" id="reportCategory" required>
+          <option value="">유형 선택</option>
+          <option value="이안류 위험">🌊 이안류/급류 발견</option>
+          <option value="해파리 출몰">🪼 해파리 출몰</option>
+          <option value="해양 쓰레기">🗑️ 해양 쓰레기/유리조각</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">📸 사진 첨부</label>
+        <input type="file" class="form-control" id="reportImage" accept="image/*" onchange="previewImage(event)">
+        <img id="imgPreview" class="img-preview" src="#" alt="미리보기">
+      </div>
+      <div class="form-group">
+        <label class="form-label">📝 제보 내용</label>
+        <input type="text" class="form-control" id="reportDesc" placeholder="상세 위치 및 현장 상황" required>
+      </div>
+      <button type="submit" class="btn-submit">제보 제출하기</button>
+    </form>
+
+    <hr style="margin: 15px 0; border: none; border-top: 1px solid var(--border-color);">
+    <h4>📋 내 제보 현황</h4>
+    <div class="report-list" id="reporterList"></div>
+  </div>
+</div>
+
+<script>
+  // 해수욕장별 8가지 환경 실시간 데이터 설정
+  const beachData = {
+    '해운대': { rip: '주의 (2단계)', jelly: '출몰 (노무라)', clean: '양호 (상)', temp: '22.5 ℃', dust: '좋음 (18 µg/m³)', ozone: '보통 (0.03 ppm)', uv: '높음 (7)', wind: '3.5 m/s' },
+    '광안리': { rip: '안전 (1단계)', jelly: '관찰됨 (보름달)', clean: '보통 (중)', temp: '23.1 ℃', dust: '보통 (35 µg/m³)', ozone: '좋음 (0.02 ppm)', uv: '매우높음 (9)', wind: '2.1 m/s' },
+    '송정': { rip: '경계 (3단계)', jelly: '안전 (없음)', clean: '매우양호 (최상)', temp: '21.8 ℃', dust: '좋음 (12 µg/m³)', ozone: '보통 (0.04 ppm)', uv: '보통 (5)', wind: '5.2 m/s' },
+    '다대포': { rip: '안전 (1단계)', jelly: '주의 (노무라)', clean: '보통 (중)', temp: '22.0 ℃', dust: '나쁨 (62 µg/m³)', ozone: '주의 (0.08 ppm)', uv: '높음 (6)', wind: '4.0 m/s' }
+  };
+
+  let currentBeach = '해운대';
+  let currentImageData = '';
+
+  function getReports() { 
+    try {
+      const data = localStorage.getItem('ocean_reports');
+      return data ? JSON.parse(data) : [];
+    } catch (e) { return []; }
+  }
+
+  function saveReports(data) { localStorage.setItem('ocean_reports', JSON.stringify(data)); }
+  function getPoints() { 
+    const pts = parseInt(localStorage.getItem('ocean_points'));
+    return isNaN(pts) ? 0 : pts; 
+  }
+  function savePoints(pts) { localStorage.setItem('ocean_points', pts.toString()); }
+
+  function selectBeach(name) {
+    currentBeach = name;
+    document.querySelectorAll('.beach-btn').forEach(btn => btn.classList.toggle('active', btn.innerText === name));
+    document.getElementById('selectedBeachName').innerText = `${name} 실시간 상태 정보`;
+    const data = beachData[name];
+    if(data) {
+      document.getElementById('ripCurrent').innerText = data.rip;
+      document.getElementById('jellyfish').innerText = data.jelly;
+      document.getElementById('cleanliness').innerText = data.clean;
+      document.getElementById('waterTemp').innerText = data.temp;
+      document.getElementById('fineDust').innerText = data.dust;
+      document.getElementById('ozone').innerText = data.ozone;
+      document.getElementById('uvIndex').innerText = data.uv;
+      document.getElementById('windSpeed').innerText = data.wind;
+    }
+  }
+
+  function previewImage(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        currentImageData = e.target.result;
+        const img = document.getElementById('imgPreview');
+        img.src = currentImageData;
+        img.style.display = 'block';
+      }
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function buyItem(itemName, cost) {
+    const pts = getPoints();
+    if (pts < cost) {
+      alert(`❌ 포인트가 부족합니다. (보유: ${pts}pt / 필요: ${cost}pt)`);
+      return;
+    }
+    if (confirm(`'${itemName}'을(를) ${cost}pt로 교환하시겠습니까?`)) {
+      savePoints(pts - cost);
+      alert(`🎉 교환 완료!`);
+      render();
+    }
+  }
+
+  function addReport(e) {
+    e.preventDefault();
+    const adminEmail = document.getElementById('adminEmail').value;
+    const category = document.getElementById('reportCategory').value;
+    const desc = document.getElementById('reportDesc').value;
+
+    const reports = getReports();
+    reports.unshift({
+      id: Date.now(),
+      beach: currentBeach,
+      category: category,
+      desc: desc,
+      image: currentImageData,
+      adminEmail: adminEmail,
+      approved: false,
+      date: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+    });
+    saveReports(reports);
+
+    alert(`📧 제보가 접수되었습니다! 관리자 승인 후 포인트가 적립됩니다.`);
+    document.getElementById('reportCategory').value = '';
+    document.getElementById('reportDesc').value = '';
+    document.getElementById('reportImage').value = '';
+    document.getElementById('imgPreview').style.display = 'none';
+    currentImageData = '';
+    render();
+  }
+
+  function render() {
+    document.getElementById('userPoints').innerText = `${getPoints()} pt`;
+    const reports = getReports();
+
+    const reporterList = document.getElementById('reporterList');
+    if (reports.length === 0) {
+      reporterList.innerHTML = '<p style="text-align:center; font-size:0.8rem; opacity:0.6; padding:10px;">제보 내역이 없습니다.</p>';
+    } else {
+      reporterList.innerHTML = reports.map(r => `
+        <div class="report-item ${r.approved ? 'approved' : ''}">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong>[${r.beach}] ${r.category}</strong>
+            <span class="status-tag ${r.approved ? 'tag-approved' : 'tag-pending'}">${r.approved ? '✅ 승인 (+50pt)' : '⏳ 대기중'}</span>
+          </div>
+          ${r.image ? `<img src="${r.image}" class="report-img">` : ''}
+          <div>${r.desc}</div>
+        </div>
+      `).join('');
+    }
+  }
+
+  selectBeach('해운대');
+  render();
+</script>
+
+</body>
+</html>
